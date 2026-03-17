@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Cobrancas · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="hero-panel mb-4">
+  <div>
+    <div class="eyebrow mb-2">Financeiro</div>
+    <h1 class="h3 mb-1">Cobrancas e envio manual</h1>
+    <p class="section-subtitle mb-0">Crie a cobranca, gere o link e abra o WhatsApp manualmente com a mensagem pronta.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-sm {{ 'btn-primary' if not filter_status else 'btn-outline-primary' }}" href="{{ url_for('main.charges_list') }}">Todas</a>
+    <a class="btn btn-sm {{ 'btn-warning' if filter_status == 'pendente' else 'btn-outline-warning' }}" href="{{ url_for('main.charges_list', status='pendente') }}">Pendentes</a>
+    <a class="btn btn-sm {{ 'btn-success' if filter_status == 'pago' else 'btn-outline-success' }}" href="{{ url_for('main.charges_list', status='pago') }}">Pagas</a>
+    <a class="btn btn-sm {{ 'btn-secondary' if filter_status == 'cancelado' else 'btn-outline-secondary' }}" href="{{ url_for('main.charges_list', status='cancelado') }}">Canceladas</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="mini-stat shadow-soft warning"><span>Pendentes</span><strong>{{ summary.pendente }}</strong></div></div>
+  <div class="col-md-4"><div class="mini-stat shadow-soft success"><span>Pagas</span><strong>{{ summary.pago }}</strong></div></div>
+  <div class="col-md-4"><div class="mini-stat shadow-soft danger"><span>Canceladas</span><strong>{{ summary.cancelado }}</strong></div></div>
+</div>
+
+<div class="card app-card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-lg-7">
+        <label class="form-label">Buscar cobranca</label>
+        <div class="input-group input-group-modern">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input class="form-control" name="q" value="{{ search }}" placeholder="Cliente, servico ou descricao">
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+          <option value="">Todos</option>
+          <option value="pendente" {% if filter_status == 'pendente' %}selected{% endif %}>Pendente</option>
+          <option value="pago" {% if filter_status == 'pago' %}selected{% endif %}>Pago</option>
+          <option value="cancelado" {% if filter_status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+        </select>
+      </div>
+      <div class="col-lg-2 d-flex gap-2">
+        <button class="btn btn-primary w-100">Filtrar</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('main.charges_list') }}">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if current_user.is_admin %}
+<div class="card app-card mb-4">
+  <div class="card-body">
+    <div class="section-head mb-3">
+      <div>
+        <div class="eyebrow">Nova cobranca</div>
+        <h2 class="h5 mb-1">Criar manualmente</h2>
+        <p class="section-subtitle mb-0">O envio continua manual pelo WhatsApp, sem disparo automatico.</p>
+      </div>
+      <span class="mini-stat {{ 'success' if mp_enabled else 'secondary' }}">{{ 'Mercado Pago ativo' if mp_enabled else 'Mercado Pago nao configurado' }}</span>
+    </div>
+    <form method="post" action="{{ url_for('main.charges_create') }}" class="row g-3">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <div class="col-lg-3">
+        <label class="form-label">Cliente</label>
+        <select class="form-select" name="client_id" required>
+          <option value="">Selecione</option>
+          {% for client in clients %}
+          <option value="{{ client.id }}">{{ client.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-4">
+        <label class="form-label">Descricao</label>
+        <input class="form-control" name="description" placeholder="Mensalidade, taxa, servico...">
+      </div>
+      <div class="col-lg-2">
+        <label class="form-label">Valor</label>
+        <input type="number" step="0.01" min="0" class="form-control" name="amount" required>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Vencimento</label>
+        <input type="date" class="form-control" name="due_date" required>
+      </div>
+      <div class="col-12 d-flex justify-content-end">
+        <button class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Criar cobranca</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="card app-card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-modern align-middle mb-0">
+        <thead><tr><th>Cliente</th><th>Descricao</th><th>Valor</th><th>Vencimento</th><th>Status</th><th class="text-end">Acoes</th></tr></thead>
+        <tbody>
+          {% for charge in charges %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ charge.client.name }}</div>
+              <div class="small text-muted">{{ charge.client.service_name }}</div>
+            </td>
+            <td>{{ charge.description }}</td>
+            <td>{{ charge.amount|money }}</td>
+            <td>
+              <div>{{ charge.due_date|date_br }}</div>
+              <div class="small text-muted">{{ due_label_for(charge.due_date) }}</div>
+            </td>
+            <td><span class="badge rounded-pill text-bg-{{ badge_for(charge.status) }}">{{ charge.status }}</span></td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-2 flex-wrap">
+                {% if current_user.is_admin and charge.status == 'pendente' and not charge.mercado_pago_init_point %}
+                <form method="post" action="{{ url_for('main.charges_generate_link', charge_id=charge.id) }}">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-primary">Gerar link</button>
+                </form>
+                {% endif %}
+                {% if current_user.is_admin and charge.status == 'pendente' %}
+                <form method="post" action="{{ url_for('main.charges_mark_paid', charge_id=charge.id) }}">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-primary">Pago</button>
+                </form>
+                <form method="post" action="{{ url_for('main.charges_cancel', charge_id=charge.id) }}" onsubmit="return confirm('Cancelar esta cobranca?');">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-secondary">Cancelar</button>
+                </form>
+                {% endif %}
+                <a class="btn btn-sm btn-success" target="_blank" rel="noopener" href="{{ whatsapp_url(charge.client.whatsapp, renewal_message_for(charge.client, charge)) }}">WhatsApp</a>
+                {% if charge.mercado_pago_init_point %}
+                <a class="btn btn-sm btn-dark" target="_blank" rel="noopener" href="{{ charge.mercado_pago_init_point }}">Abrir link</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-muted">Nenhuma cobranca encontrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% set endpoint = 'main.charges_list' %}
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

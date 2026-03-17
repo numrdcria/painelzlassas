@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="card app-card border-0 shadow-sm sticky-card">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Equipe</div>
+            <h1 class="h4 mb-1">Novo usuario</h1>
+          </div>
+        </div>
+        <form method="post" class="row g-3">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="col-12">
+            <label class="form-label">Nome</label>
+            <input class="form-control" name="name" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" name="email" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control" name="password" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Perfil</label>
+            <select class="form-select" name="role">
+              <option value="employee">Funcionaria</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="active" checked>
+              <label class="form-check-label">Ativo</label>
+            </div>
+          </div>
+          <div class="col-12"><button class="btn btn-primary w-100">Criar usuario</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-8">
+    <div class="card app-card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Acessos</div>
+            <h2 class="h5 mb-1">Usuarios cadastrados</h2>
+          </div>
+          <span class="mini-stat secondary">{{ users|length }} usuario(s)</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ 'Administrador' if user.role == 'admin' else 'Funcionaria' }}</td>
+                <td><span class="badge rounded-pill text-bg-{{ 'success' if user.active else 'secondary' }}">{{ 'ativo' if user.active else 'inativo' }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-muted">Nenhum usuario cadastrado.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

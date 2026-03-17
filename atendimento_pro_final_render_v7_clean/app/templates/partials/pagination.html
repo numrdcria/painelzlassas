@@ -1,0 +1,21 @@
+{% if pagination and pagination.pages > 1 %}
+<nav aria-label="Paginacao" class="mt-4">
+  <ul class="pagination pagination-sm mb-0 flex-wrap gap-2">
+    <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+      <a class="page-link rounded-pill" href="{{ url_for(endpoint, page=pagination.prev_num, **endpoint_args_without_page()) if pagination.has_prev else '#' }}">Anterior</a>
+    </li>
+    {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+      {% if page_num %}
+        <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+          <a class="page-link rounded-pill" href="{{ url_for(endpoint, page=page_num, **endpoint_args_without_page()) }}">{{ page_num }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link rounded-pill">...</span></li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+      <a class="page-link rounded-pill" href="{{ url_for(endpoint, page=pagination.next_num, **endpoint_args_without_page()) if pagination.has_next else '#' }}">Proxima</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
