@@ -1,5 +1,0 @@
-1) Extraia tudo para uma pasta normal, nao rode dentro do ZIP.
-2) Abra a pasta extraida no VSCode.
-3) Rode: .\rodar_windows.ps1
-4) Se bloquear script, rode: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-5) Login inicial: admin@empresa.com / 123456
