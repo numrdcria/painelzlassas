@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Suporte · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="card app-card sticky-card support-create-card">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Suporte</div>
+            <h1 class="h4 mb-1">Novo atendimento</h1>
+            <p class="section-subtitle mb-0">Busque por nome, telefone, plataforma, problema ou descricao.</p>
+          </div>
+        </div>
+        <form method="post" class="row g-3">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="col-12">
+            <label class="form-label">Nome</label>
+            <input class="form-control" name="contact_name" required placeholder="Nome do cliente">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Telefone</label>
+            <input class="form-control" name="contact_phone" placeholder="(11) 99999-9999">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Plataforma</label>
+            <select class="form-select" name="platform">
+              <option value="">Selecione</option>
+              {% for item in support_platforms %}<option value="{{ item }}">{{ item }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Problema</label>
+            <select class="form-select" name="issue_type">
+              <option value="">Selecione</option>
+              {% for item in support_issues %}<option value="{{ item }}">{{ item }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Dispositivo</label>
+            <select class="form-select" name="device_type">
+              <option value="">Selecione</option>
+              {% for item in support_devices %}<option value="{{ item }}">{{ item }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="service_status">
+              {% for item in support_statuses %}<option value="{{ item }}">{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Prioridade</label>
+            <select class="form-select" name="priority">
+              {% for item in support_priorities %}<option value="{{ item }}">{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Titulo</label>
+            <input class="form-control" name="title" required placeholder="Ex.: Cliente sem acesso">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descricao</label>
+            <textarea class="form-control" name="description" rows="5" required placeholder="Descreva o que foi feito no atendimento"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Data e hora</label>
+            <input type="datetime-local" class="form-control" name="attended_at">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Retorno</label>
+            <input type="date" class="form-control" name="next_follow_up">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary w-100"><i class="bi bi-headset me-1"></i>Salvar atendimento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    <div class="page-header mb-4">
+      <div>
+        <div class="eyebrow">Historico</div>
+        <h2 class="h4 mb-1">Atendimentos de suporte</h2>
+        <p class="section-subtitle mb-0">
+        </p>
+      </div>
+    </div>
+
+    <div class="card app-card mb-4">
+      <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-lg-7">
+            <label class="form-label">Buscar no suporte</label>
+            <div class="input-group input-group-modern">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input class="form-control" name="q" value="{{ search }}" placeholder="Nome, telefone, plataforma, problema ou descricao">
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              <option value="">Todos</option>
+              {% for item in support_statuses %}<option value="{{ item }}" {% if status_filter == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary w-100">Filtrar</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.support_center') }}">Limpar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card app-card">
+      <div class="card-body">
+        <div class="timeline">
+          {% for support in support_entries %}
+          <article class="timeline-item">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+              <div>
+                <div class="fw-semibold">{{ support.title }}</div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  {% if support.platform %}<span class="badge text-bg-primary-subtle">{{ support.platform }}</span>{% endif %}
+                  {% if support.issue_type %}<span class="badge text-bg-warning-subtle">{{ support.issue_type }}</span>{% endif %}
+                  {% if support.device_type %}<span class="badge text-bg-info-subtle">{{ support.device_type }}</span>{% endif %}
+                  <span class="badge text-bg-secondary">{{ support.service_status|title }}</span>
+                  <span class="badge {% if support.priority == "urgente" %}text-bg-danger{% else %}text-bg-light border{% endif %}">{{ support.priority|title }}</span>
+                </div>
+                <div class="small text-muted">Nome: {{ support.display_name }}{% if support.display_phone %} · Telefone: {{ support.display_phone }}{% endif %} · Responsavel: {{ support.user.name }}</div>
+              </div>
+              <div class="text-end small text-muted">
+                <div>{{ support.attended_at|datetime_br }}</div>
+                {% if support.next_follow_up %}<div>Retorno: {{ support.next_follow_up|date_br }}</div>{% endif %}
+              </div>
+            </div>
+            <p class="mb-2">{{ support.description }}</p>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+              <form method="post" action="{{ url_for('main.support_update_status', attendance_id=support.id) }}" class="d-flex gap-2 align-items-center">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <select class="form-select form-select-sm support-status-select" name="service_status">
+                  {% for item in support_statuses %}<option value="{{ item }}" {% if support.service_status == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i>Atualizar</button>
+              </form>
+              <div class="d-flex gap-2">
+                {% if support.service_status != 'resolvido' %}
+                <form method="post" action="{{ url_for('main.support_update_status', attendance_id=support.id) }}">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="service_status" value="resolvido">
+                  <button class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>Finalizar</button>
+                </form>
+                {% endif %}
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.support_edit', attendance_id=support.id) }}"><i class="bi bi-pencil-square me-1"></i>Editar</a>
+                <form method="post" action="{{ url_for('main.support_delete', attendance_id=support.id) }}" onsubmit="return confirm('Deseja excluir este atendimento de suporte?');">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Excluir</button>
+                </form>
+              </div>
+            </div>
+          </article>
+          {% else %}
+          <div class="empty-state compact">Nenhum atendimento encontrado.</div>
+          {% endfor %}
+        </div>
+        {% set endpoint = 'main.support_center' %}
+        {% include 'partials/pagination.html' %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

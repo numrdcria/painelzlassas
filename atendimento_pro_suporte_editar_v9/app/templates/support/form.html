@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar suporte' if attendance else 'Novo suporte' }} · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <div class="page-header mb-4">
+      <div>
+        <div class="eyebrow">Suporte</div>
+        <h1 class="h4 mb-1">{{ 'Editar atendimento' if attendance else 'Novo atendimento' }}</h1>
+        <p class="section-subtitle mb-0">Atualize status, descricao e informacoes do suporte sem apagar o registro.</p>
+      </div>
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.support_center') }}"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+    </div>
+
+    <div class="card app-card">
+      <div class="card-body">
+        <form method="post" class="row g-3">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-6">
+            <label class="form-label">Nome</label>
+            <input class="form-control" name="contact_name" required value="{{ attendance.contact_name if attendance else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Telefone</label>
+            <input class="form-control" name="contact_phone" value="{{ attendance.contact_phone if attendance else '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Plataforma</label>
+            <select class="form-select" name="platform">
+              <option value="">Selecione</option>
+              {% for item in support_platforms %}<option value="{{ item }}" {% if attendance and attendance.platform == item %}selected{% endif %}>{{ item }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Problema</label>
+            <select class="form-select" name="issue_type">
+              <option value="">Selecione</option>
+              {% for item in support_issues %}<option value="{{ item }}" {% if attendance and attendance.issue_type == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Dispositivo</label>
+            <select class="form-select" name="device_type">
+              <option value="">Selecione</option>
+              {% for item in support_devices %}<option value="{{ item }}" {% if attendance and attendance.device_type == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="service_status">
+              {% for item in support_statuses %}<option value="{{ item }}" {% if attendance and attendance.service_status == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Prioridade</label>
+            <select class="form-select" name="priority">
+              {% for item in support_priorities %}<option value="{{ item }}" {% if attendance and attendance.priority == item %}selected{% endif %}>{{ item|title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Retorno</label>
+            <input type="date" class="form-control" name="next_follow_up" value="{{ attendance.next_follow_up.strftime('%Y-%m-%d') if attendance and attendance.next_follow_up else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Data e hora</label>
+            <input type="datetime-local" class="form-control" name="attended_at" value="{{ attendance.attended_at.strftime('%Y-%m-%dT%H:%M') if attendance and attendance.attended_at else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Titulo</label>
+            <input class="form-control" name="title" required value="{{ attendance.title if attendance else '' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descricao</label>
+            <textarea class="form-control" name="description" rows="6" required>{{ attendance.description if attendance else '' }}</textarea>
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.support_center') }}">Cancelar</a>
+            <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Salvar alteracoes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

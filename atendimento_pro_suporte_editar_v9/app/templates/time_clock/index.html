@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Ponto · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card app-card h-100 sticky-card">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Equipe</div>
+            <h1 class="h4 mb-1">Bater ponto</h1>
+            <p class="section-subtitle mb-1">Proximo registro sugerido: <strong>{{ entry_label(next_type) }}</strong></p>
+            <p class="section-subtitle mb-0">Horario corrigido para {{ timezone_name or 'America/Sao_Paulo' }}.</p>
+          </div>
+        </div>
+        <form method="post" class="vstack gap-3">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="entry_type" value="{{ next_type }}">
+          <div>
+            <label class="form-label">Observacao</label>
+            <input class="form-control" name="note" placeholder="Opcional">
+          </div>
+          <button class="btn btn-primary w-100 py-3">Registrar {{ entry_label(next_type) }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card app-card mb-4">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Hoje</div>
+            <h2 class="h5 mb-1">Meus registros</h2>
+            <p class="section-subtitle mb-0">Agora voce pode excluir um ponto incorreto.</p>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Tipo</th><th>Horario</th><th>Observacao</th><th class="text-end">Acoes</th></tr></thead>
+            <tbody>
+              {% for entry in today_entries %}
+              <tr>
+                <td>{{ entry_label(entry.entry_type) }}</td>
+                <td>{{ entry.created_at|datetime_br }}</td>
+                <td>{{ entry.note or '-' }}</td>
+                <td class="text-end">
+                  <form method="post" action="{{ url_for('main.time_clock_delete', entry_id=entry.id) }}" onsubmit="return confirm('Excluir este ponto?');">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-muted">Nenhum ponto hoje.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {% if current_user.is_admin %}
+    <div class="card app-card">
+      <div class="card-body">
+        <div class="section-head mb-3">
+          <div>
+            <div class="eyebrow">Compartilhado</div>
+            <h2 class="h5 mb-1">Pontos recentes da equipe</h2>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Usuario</th><th>Tipo</th><th>Horario</th><th>Observacao</th><th class="text-end">Acoes</th></tr></thead>
+            <tbody>
+              {% for entry in recent_all %}
+              <tr>
+                <td>{{ entry.user.name }}</td>
+                <td>{{ entry_label(entry.entry_type) }}</td>
+                <td>{{ entry.created_at|datetime_br }}</td>
+                <td>{{ entry.note or '-' }}</td>
+                <td class="text-end">
+                  <form method="post" action="{{ url_for('main.time_clock_delete', entry_id=entry.id) }}" onsubmit="return confirm('Excluir este ponto?');">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-muted">Nenhum ponto registrado.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

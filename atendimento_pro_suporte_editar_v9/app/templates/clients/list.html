@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Clientes · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+  <div>
+    <div class="eyebrow mb-2">Clientes</div>
+    <h1 class="h3 mb-1">Cadastro e renovacoes</h1>
+    <p class="section-subtitle mb-0">Visual mais leve, com busca, filtros e remocao de clientes quando precisar.</p>
+  </div>
+  {% if current_user.is_admin %}
+    <a class="btn btn-primary" href="{{ url_for('main.clients_create') }}"><i class="bi bi-person-plus me-1"></i>Novo cliente</a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3"><div class="mini-stat shadow-soft"><span>Total</span><strong>{{ summary.total }}</strong></div></div>
+  <div class="col-md-6 col-xl-3"><div class="mini-stat shadow-soft danger"><span>Atrasados</span><strong>{{ summary.atrasados }}</strong></div></div>
+  <div class="col-md-6 col-xl-3"><div class="mini-stat shadow-soft warning"><span>Vence hoje</span><strong>{{ summary.vence_hoje }}</strong></div></div>
+  <div class="col-md-6 col-xl-3"><div class="mini-stat shadow-soft success"><span>Vence em breve</span><strong>{{ summary.vence_em_breve }}</strong></div></div>
+</div>
+
+<div class="card app-card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-lg-6">
+        <label class="form-label">Buscar cliente</label>
+        <div class="input-group input-group-modern">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input class="form-control" name="q" value="{{ search }}" placeholder="Nome, WhatsApp, servico ou e-mail">
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Filtro</label>
+        <select class="form-select" name="status">
+          <option value="">Todos</option>
+          <option value="atrasado" {% if filter_status == 'atrasado' %}selected{% endif %}>Atrasados</option>
+          <option value="vence_hoje" {% if filter_status == 'vence_hoje' %}selected{% endif %}>Vence hoje</option>
+          <option value="vence_em_breve" {% if filter_status == 'vence_em_breve' %}selected{% endif %}>Vence em breve</option>
+          <option value="ativo" {% if filter_status == 'ativo' %}selected{% endif %}>Ativos</option>
+          <option value="cancelado" {% if filter_status == 'cancelado' %}selected{% endif %}>Cancelados</option>
+        </select>
+      </div>
+      <div class="col-lg-3 d-flex gap-2">
+        <button class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('main.clients_list') }}">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card app-card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-modern align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Contato</th>
+            <th>Servico</th>
+            <th>Mensalidade</th>
+            <th>Vencimento</th>
+            <th>Status</th>
+            <th class="text-end">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for client in clients %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ client.name }}</div>
+              <div class="small text-muted">{{ client.email or 'Sem e-mail' }}</div>
+            </td>
+            <td>{{ client.whatsapp }}</td>
+            <td>{{ client.service_name }}</td>
+            <td>{{ client.monthly_fee|money }}</td>
+            <td>
+              <div>{{ client.due_date|date_br }}</div>
+              <div class="small text-muted">{{ due_label_for(client.due_date) }}</div>
+            </td>
+            <td><span class="badge rounded-pill text-bg-{{ badge_for(display_client_status(client)) }}">{{ display_client_status(client) }}</span></td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="{{ whatsapp_url(client.whatsapp, renewal_message_for(client)) }}"><i class="bi bi-whatsapp"></i></a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.support_center', client=client.id) }}">Suporte</a>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.client_detail', client_id=client.id) }}">Abrir</a>
+                {% if current_user.is_admin %}
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.client_edit', client_id=client.id) }}">Editar</a>
+                <form method="post" action="{{ url_for('main.client_delete', client_id=client.id) }}" onsubmit="return confirm('Deseja remover este cliente? Esta acao apaga suporte e cobrancas ligadas a ele.');">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-danger">Remover</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-muted">Nenhum cliente encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% set endpoint = 'main.clients_list' %}
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar cliente' if client else 'Novo cliente' }} · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="page-header mb-4">
+  <div>
+    <div class="eyebrow">{{ 'Editar cliente' if client else 'Novo cliente' }}</div>
+    <h2 class="mb-1">{{ 'Atualize os dados do cliente' if client else 'Cadastre um novo cliente' }}</h2>
+    <p class="text-muted mb-0">Os dados de vencimento ja entram no sistema para alertas automaticos.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('main.clients_list') }}">Voltar</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <div class="card app-card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" class="row g-3">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-6">
+            <label class="form-label">Nome *</label>
+            <input class="form-control" name="name" value="{{ client.name if client else '' }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">WhatsApp *</label>
+            <input class="form-control" name="whatsapp" value="{{ client.whatsapp if client else '' }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" name="email" value="{{ client.email if client else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Servico *</label>
+            <input class="form-control" name="service_name" value="{{ client.service_name if client else '' }}" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Mensalidade</label>
+            <input type="number" step="0.01" min="0" class="form-control" name="monthly_fee" value="{{ client.monthly_fee if client else '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Vencimento *</label>
+            <input type="date" class="form-control" name="due_date" value="{{ client.due_date.isoformat() if client else '' }}" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              {% set current_status = client.status if client else 'ativo' %}
+              <option value="ativo" {% if current_status == 'ativo' %}selected{% endif %}>Ativo</option>
+              <option value="inativo" {% if current_status == 'inativo' %}selected{% endif %}>Inativo</option>
+              <option value="cancelado" {% if current_status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observacoes</label>
+            <textarea class="form-control" name="notes" rows="5">{{ client.notes if client else '' }}</textarea>
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.clients_list') }}">Cancelar</a>
+            <button class="btn btn-primary">{{ 'Salvar alteracoes' if client else 'Cadastrar cliente' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
