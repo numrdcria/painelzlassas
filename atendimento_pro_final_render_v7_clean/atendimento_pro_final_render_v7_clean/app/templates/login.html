@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Entrar · Atendimento Pro{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-xl-10">
+    <div class="card auth-card border-0 shadow-lg overflow-hidden">
+      <div class="row g-0">
+        <div class="col-lg-6 auth-side p-5">
+          <div class="eyebrow text-white-50 mb-3">Atendimento Pro</div>
+          <h1 class="display-6 fw-semibold text-white mb-3">Seu painel ficou mais bonito e mais pratico.</h1>
+          <p class="text-white-50 mb-4">Controle clientes, atendimentos, vencimentos, cobrancas e ponto da equipe no mesmo lugar.</p>
+          <div class="feature-list text-white-50 small">
+            <div><i class="bi bi-check2-circle me-2"></i>Mensagem de renovacao pronta no WhatsApp</div>
+            <div><i class="bi bi-check2-circle me-2"></i>Alertas automaticos de vencimento</div>
+            <div><i class="bi bi-check2-circle me-2"></i>Geracao de cobrancas e login por usuario</div>
+          </div>
+        </div>
+        <div class="col-lg-6 bg-white p-4 p-lg-5">
+          <h2 class="h3 mb-2">Entrar</h2>
+          <p class="text-muted mb-4">Acesse com seu e-mail e senha.</p>
+          <form method="post" class="vstack gap-3">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div>
+              <label class="form-label">E-mail</label>
+              <input type="email" name="email" class="form-control form-control-lg" required>
+            </div>
+            <div>
+              <label class="form-label">Senha</label>
+              <input type="password" name="password" class="form-control form-control-lg" required>
+            </div>
+            <button class="btn btn-primary btn-lg w-100" type="submit">Entrar no painel</button>
+          </form>
+          <div class="mini-stat secondary mt-4"><span>Login inicial</span><strong>admin@empresa.com / 123456</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
